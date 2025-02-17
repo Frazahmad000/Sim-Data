@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Number Search | Shakeel Khan</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --secondary: #1e40af;
+            --gradient: linear-gradient(135deg, #2563eb, #1e40af);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        body {
+            background: var(--gradient);
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            width: 100%;
+            max-width: 600px;
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transform: translateY(0);
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .logo {
+            font-size: 2.5rem;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: glow 2s ease-in-out infinite;
+        }
+
+        @keyframes glow {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 1.5rem;
+        }
+
+        input {
+            flex: 1;
+            padding: 1rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        input:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        button {
+            background: var(--gradient);
+            color: white;
+            border: none;
+            padding: 0 2rem;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform 0.2s ease;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        .result {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .data-item {
+            margin: 1rem 0;
+            padding: 1rem;
+            background: #f8fafc;
+            border-radius: 8px;
+        }
+
+        .data-item strong {
+            color: var(--primary);
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .powered-by {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            font-size: 2rem;
+            opacity: 0.8;
+            animation: slideIn 1s ease;
+        }
+
+        @keyframes slideIn {
+            from { transform: translate(-50%, 100%); }
+            to { transform: translate(-50%, 0); }
+        }
+
+        .telegram-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: white;
+            text-decoration: none;
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            background: #0088cc;
+            transition: transform 0.2s ease;
+        }
+
+        .telegram-link:hover {
+            transform: translateY(-2px);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 1rem;
+            color: var(--primary);
+        }
+
+        .loading i {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <a href="https://t.me/ShakeelAhmad09" class="telegram-link" target="_blank">
+        <i class="fab fa-telegram"></i>
+        Join Telegram
+    </a>
+
+    <div class="container">
+        <header>
+            <h1 class="logo">Shakeel Sim Data Finder</h1>
+        </header>
+
+        <div class="search-box">
+            <input type="number" id="searchInput" placeholder="Enter mobile number...">
+            <button onclick="fetchData()">
+                <i class="fas fa-search"></i>
+                Search
+            </button>
+        </div>
+
+        <div class="loading" id="loading">
+            <i class="fas fa-spinner"></i> Loading...
+        </div>
+
+        <div class="result" id="result"></div>
+    </div>
+
+    <div class="powered-by">
+        ★彡[ᴘᴏᴡᴇʀᴇᴅ ʙʏ ꜱʜᴀᴋᴇᴇʟ ᴋʜᴀɴ]彡★ 🦅
+    </div>
+
+    <script>
+        async function fetchData() {
+            const number = document.getElementById('searchInput').value;
+            const resultDiv = document.getElementById('result');
+            const loadingDiv = document.getElementById('loading');
+
+            if(!number) {
+                alert('Please enter a valid number');
+                return;
+            }
+
+            try {
+                resultDiv.innerHTML = '';
+                loadingDiv.style.display = 'block';
+                
+                // Using CORS proxy
+                const proxyUrl = 'https://api.allorigins.win/raw?url=';
+                const apiUrl = `http://tmphpscripts.xyz/Tajammal.php?num=${number}`;
+                
+                const response = await fetch(proxyUrl + encodeURIComponent(apiUrl));
+                const data = await response.json();
+
+                loadingDiv.style.display = 'none';
+                
+                if(data.error) {
+                    showError(data.error);
+                } else {
+                    resultDiv.innerHTML = formatData(data[0]);
+                }
+            } catch (err) {
+                loadingDiv.style.display = 'none';
+                showError('Failed to fetch data');
+                console.error(err);
+            }
+        }
+
+        function formatData(data) {
+            return `
+                <div class="data-item">
+                    <strong>Mobile Number:</strong> ${data["Mobile #"]}
+                </div>
+                <div class="data-item">
+                    <strong>Name:</strong> ${data.Name}
+                </div>
+                <div class="data-item">
+                    <strong>CNIC:</strong> ${data.CNIC}
+                </div>
+                <div class="data-item">
+                    <strong>Address:</strong> ${data.Address}
+                </div>
+                <div class="data-item">
+                    <strong>Operator:</strong> ${data.Operator}
+                </div>
+            `;
+        }
+
+        function showError(message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'data-item';
+            errorDiv.style.background = '#fee2e2';
+            errorDiv.style.color = '#dc2626';
+            errorDiv.innerHTML = `<strong>Error:</strong> ${message}`;
+            document.getElementById('result').appendChild(errorDiv);
+        }
+    </script>
+</body>
+</html>
